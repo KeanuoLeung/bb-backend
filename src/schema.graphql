@@ -21,6 +21,10 @@ input CreatePostInput {
   title: String!
 }
 
+input CreateQueueInput {
+  title: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -39,6 +43,7 @@ input LoginInput {
 type Mutation {
   changePassword(data: ChangePasswordInput!): User!
   createPost(data: CreatePostInput!): Post!
+  createQueue(data: CreateQueueInput!): Queue!
   login(data: LoginInput!): Auth!
   refreshToken(token: JWT!): Token!
   signup(data: SignupInput!): Auth!
@@ -107,6 +112,16 @@ type Query {
   post(postId: String!): Post!
   publishedPosts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): PostConnection!
   userPosts(userId: String!): [Post!]!
+}
+
+type Queue {
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  id: ID!
+  title: String!
+
+  """Identifies the date and time when the object was last updated."""
+  updatedAt: DateTime!
 }
 
 """User role"""

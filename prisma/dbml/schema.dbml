@@ -25,9 +25,85 @@ Table Post {
   authorId String
 }
 
+Table Client {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  email String [unique, not null]
+  password String [not null]
+  nickname String [not null]
+  balance Int [not null]
+  VerifyRecord VerifyRecord [not null]
+}
+
+Table Verifier {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  email String [unique, not null]
+  password String [not null]
+  VerifyRecord VerifyRecord [not null]
+}
+
+Table VerifyRecord {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [not null]
+  content String [not null]
+  type ResourceType [not null]
+  verifyStatus VerifyStatus [not null, default: 'PENDING']
+  verifier Verifier
+  verifierId String
+  client Client [not null]
+  clientId String [not null]
+  Queue Queue
+  queueId String
+}
+
+Table Queue {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [not null]
+  VerifyRecord VerifyRecord [not null]
+  MachineStrategy MachineStrategy [not null]
+}
+
+Table MachineStrategy {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  url String [not null]
+  title String [not null]
+  content String [not null]
+  queue Queue
+  queueId String
+}
+
 Enum Role {
   ADMIN
   USER
 }
 
+Enum ResourceType {
+  IMAGE
+  VIDEO
+  TEXT
+}
+
+Enum VerifyStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 Ref: Post.authorId > User.id
+
+Ref: VerifyRecord.verifierId > Verifier.id
+
+Ref: VerifyRecord.clientId > Client.id
+
+Ref: VerifyRecord.queueId > Queue.id
+
+Ref: MachineStrategy.queueId > Queue.id

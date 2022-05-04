@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ResourceType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +48,39 @@ async function main() {
     },
   });
 
-  console.log({ user1, user2 });
+  const verifyRecord1 = await prisma.verifyRecord.create({
+    data: {
+      title: '审核素材1',
+      content: '审核素材1',
+      type: ResourceType.IMAGE,
+      verifier: {
+        connectOrCreate: {
+          where: {
+            email: user1.email,
+          },
+          create: {
+            email: 'juvenilekeanuo@live.com',
+            password: '19980411',
+          },
+        },
+      },
+      client: {
+        connectOrCreate: {
+          where: {
+            email: 'juvenilekeanuo@live.com',
+          },
+          create: {
+            email: 'juvenilekeanuo@live.com',
+            password: '19980411',
+            nickname: 'keanuo',
+            balance: 0,
+          },
+        },
+      },
+    },
+  });
+
+  console.log({ user1, user2, verifyRecord1 });
 }
 
 main()
