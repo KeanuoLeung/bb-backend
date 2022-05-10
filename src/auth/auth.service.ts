@@ -23,22 +23,33 @@ export class AuthService {
     private readonly configService: ConfigService
   ) {}
 
-  async createUser(payload: SignupInput): Promise<Token> {
+  async createUser(
+    payload: { email: string; password: string },
+    role = 'verifier'
+  ): Promise<Token> {
+    const roleMapToModel = {
+      verifier: this.prisma.verifier,
+      client: this.prisma.client,
+      admin: this.prisma.admin,
+    };
+
+    const userModel = roleMapToModel[role];
+    if (!userModel) throw new NotFoundException(`Role ${role} not found.`);
     const hashedPassword = await this.passwordService.hashPassword(
       payload.password
     );
 
     try {
-      const user = await this.prisma.user.create({
+      const user = await userModel.create({
         data: {
-          ...payload,
+          email: payload.email,
           password: hashedPassword,
-          role: 'USER',
         },
       });
 
       return this.generateTokens({
         userId: user.id,
+        role: role,
       });
     } catch (e) {
       if (
@@ -52,8 +63,21 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<Token> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async login(
+    email: string,
+    password: string,
+    role = 'verifier'
+  ): Promise<Token> {
+    console.log('role', role);
+    const roleMapToModel = {
+      verifier: this.prisma.verifier,
+      client: this.prisma.client,
+      admin: this.prisma.admin,
+    };
+
+    const userModel = roleMapToModel[role];
+    if (!userModel) throw new NotFoundException(`Role ${role} not found.`);
+    const user = await userModel.findUnique({ where: { email } });
 
     if (!user) {
       throw new NotFoundException(`No user found for email: ${email}`);
@@ -70,11 +94,20 @@ export class AuthService {
 
     return this.generateTokens({
       userId: user.id,
+      role,
     });
   }
 
-  validateUser(userId: string): Promise<User> {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+  validateUser(userId: string, role: string): Promise<User> {
+    const roleMapToModel = {
+      verifier: this.prisma.verifier,
+      client: this.prisma.client,
+      admin: this.prisma.admin,
+    };
+
+    const userModel = roleMapToModel[role];
+    if (!userModel) throw new NotFoundException(`Role ${role} not found.`);
+    return userModel.findUnique({ where: { id: userId } });
   }
 
   getUserFromToken(token: string): Promise<User> {
@@ -82,7 +115,7 @@ export class AuthService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  generateTokens(payload: { userId: string }): Token {
+  generateTokens(payload: { userId: string; role: string }): Token {
     return {
       accessToken: this.generateAccessToken(payload),
       refreshToken: this.generateRefreshToken(payload),
@@ -90,7 +123,7 @@ export class AuthService {
   }
 
   private generateAccessToken(payload: { userId: string }): string {
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, { expiresIn: '24h' });
   }
 
   private generateRefreshToken(payload: { userId: string }): string {
@@ -109,6 +142,7 @@ export class AuthService {
 
       return this.generateTokens({
         userId,
+        role: 'test',
       });
     } catch (e) {
       throw new UnauthorizedException();

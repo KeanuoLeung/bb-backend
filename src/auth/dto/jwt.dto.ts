@@ -1,5 +1,6 @@
 export interface JwtDto {
   userId: string;
+  role: string;
   /**
    * Issued at
    */

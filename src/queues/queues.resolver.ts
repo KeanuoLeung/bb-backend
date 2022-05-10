@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { PrismaService } from 'nestjs-prisma';
 import { GqlAuthGuard } from 'src/auth/gql-auth.guard';
 import { UserEntity } from 'src/common/decorators/user.decorator';
@@ -20,5 +20,12 @@ export class QueuesResolver {
       },
     });
     return newQueue;
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [Queue])
+  async queues() {
+    const queues = await this.prisma.queue.findMany();
+    return queues;
   }
 }

@@ -111,6 +111,7 @@ type Query {
   me: User!
   post(postId: String!): Post!
   publishedPosts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): PostConnection!
+  queues: [Queue!]!
   userPosts(userId: String!): [Post!]!
 }
 

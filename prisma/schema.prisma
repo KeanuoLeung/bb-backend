@@ -8,6 +8,10 @@ generator client {
   // previewFeatures = []
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
 generator dbml {
   provider = "prisma-dbml-generator"
 }
@@ -36,23 +40,43 @@ model Post {
 }
 
 model Client {
-  id           String         @id @default(cuid())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  email        String         @unique
-  password     String
-  nickname     String
-  balance      Int
-  VerifyRecord VerifyRecord[]
+  id                String              @id @default(cuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  email             String              @unique
+  password          String
+  nickname          String?             @default("User")
+  balance           Int?                @default(0)
+  VerifyRecord      VerifyRecord[]
+  ClientAccessToken ClientAccessToken[]
+  webhook           ClientWebhook[]
 }
 
 model Verifier {
-  id           String         @id @default(cuid())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  email        String         @unique
-  password     String
-  VerifyRecord VerifyRecord[]
+  id              String         @id @default(cuid())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  email           String         @unique
+  password        String
+  VerifyRecord    VerifyRecord[]
+  VerifierGroup   VerifierGroup? @relation(fields: [verifierGroupId], references: [id])
+  verifierGroupId String?
+}
+
+model VerifierGroup {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  name      String
+  Verifier  Verifier[]
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String   @unique
+  password  String
 }
 
 model VerifyRecord {
@@ -69,6 +93,8 @@ model VerifyRecord {
   clientId     String
   Queue        Queue?       @relation(fields: [queueId], references: [id])
   queueId      String?
+  rejectReason String?
+  oriId        String?
 }
 
 model Queue {
@@ -87,8 +113,53 @@ model MachineStrategy {
   url       String
   title     String
   content   String
+  reasonTag String   @default("违规资源")
+  code      String   @default("default")
   queue     Queue?   @relation(fields: [queueId], references: [id])
   queueId   String?
+}
+
+model ClientAccessToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  appid     String
+  token     String
+
+  Client   Client? @relation(fields: [clientId], references: [id])
+  clientId String?
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  content   String
+}
+
+model IllegalWord {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  word      String
+}
+
+model IllegalPic {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  url       String
+}
+
+model ClientWebhook {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  url       String
+  Client    Client?  @relation(fields: [clientId], references: [id])
+  clientId  String?
 }
 
 enum Role {

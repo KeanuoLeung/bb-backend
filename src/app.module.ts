@@ -13,6 +13,9 @@ import { loggingMiddleware } from 'src/common/middleware/logging.middleware';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GqlConfigService } from './gql-config.service';
 import { QueuesModule } from './queues/queues.module';
+import { VerifiersModule } from './verifiers/verifiers.module';
+import { AdminModule } from './admin/admin.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -33,6 +36,9 @@ import { QueuesModule } from './queues/queues.module';
     UsersModule,
     PostsModule,
     QueuesModule,
+    VerifiersModule,
+    AdminModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],

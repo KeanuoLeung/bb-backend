@@ -31,9 +31,11 @@ Table Client {
   updatedAt DateTime [not null]
   email String [unique, not null]
   password String [not null]
-  nickname String [not null]
-  balance Int [not null]
+  nickname String [default: 'User']
+  balance Int [default: 0]
   VerifyRecord VerifyRecord [not null]
+  ClientAccessToken ClientAccessToken [not null]
+  webhook ClientWebhook [not null]
 }
 
 Table Verifier {
@@ -43,6 +45,24 @@ Table Verifier {
   email String [unique, not null]
   password String [not null]
   VerifyRecord VerifyRecord [not null]
+  VerifierGroup VerifierGroup
+  verifierGroupId String
+}
+
+Table VerifierGroup {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  name String [not null]
+  Verifier Verifier [not null]
+}
+
+Table Admin {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  email String [unique, not null]
+  password String [not null]
 }
 
 Table VerifyRecord {
@@ -59,6 +79,8 @@ Table VerifyRecord {
   clientId String [not null]
   Queue Queue
   queueId String
+  rejectReason String
+  oriId String
 }
 
 Table Queue {
@@ -77,8 +99,52 @@ Table MachineStrategy {
   url String [not null]
   title String [not null]
   content String [not null]
+  reasonTag String [not null, default: '违规资源']
+  code String [not null, default: 'default']
   queue Queue
   queueId String
+}
+
+Table ClientAccessToken {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  appid String [not null]
+  token String [not null]
+  Client Client
+  clientId String
+}
+
+Table Notice {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [not null]
+  content String [not null]
+}
+
+Table IllegalWord {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  word String [not null]
+}
+
+Table IllegalPic {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [not null]
+  url String [not null]
+}
+
+Table ClientWebhook {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  url String [not null]
+  Client Client
+  clientId String
 }
 
 Enum Role {
@@ -100,6 +166,8 @@ Enum VerifyStatus {
 
 Ref: Post.authorId > User.id
 
+Ref: Verifier.verifierGroupId > VerifierGroup.id
+
 Ref: VerifyRecord.verifierId > Verifier.id
 
 Ref: VerifyRecord.clientId > Client.id
@@ -107,3 +175,7 @@ Ref: VerifyRecord.clientId > Client.id
 Ref: VerifyRecord.queueId > Queue.id
 
 Ref: MachineStrategy.queueId > Queue.id
+
+Ref: ClientAccessToken.clientId > Client.id
+
+Ref: ClientWebhook.clientId > Client.id
